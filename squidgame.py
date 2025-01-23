@@ -5,6 +5,7 @@
 
 # ba_meta require api 8
 # (see https://ballistica.net/wiki/meta-tag-system)
+# MADE BY CORPSE; Discord ID: imcorpsed
 
 from __future__ import annotations
 
