@@ -2,9 +2,9 @@
 #
 """DeathMatch game and support classes."""
 
-# ba_meta require api 8
+# ba_meta require api 9
 # (see https://ballistica.net/wiki/meta-tag-system)
-# MADE BY CORPSE; Discord ID: imcorpsed
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -196,34 +196,37 @@ class KillConfirmedGame(bs.TeamGameActivity[Player, Team]):
         )
 
     def _on_egg_player_collide(self) -> None:
-        if self.has_ended():
-            return
-        collision = bs.getcollision()
-
-        # Be defensive here; we could be hitting the corpse of a player
-        # who just left/etc.
         try:
-            egg = collision.sourcenode.getdelegate(Egg, True)
-            player = collision.opposingnode.getdelegate(
-                PlayerSpaz, True
-            ).getplayer(Player, True)
-        except bs.NotFoundError:
-            return
-        egg_owner = self._tags[egg]
-        egg.lightnode.delete()
-        egg.handlemessage(bs.DieMessage())
-        if egg_owner.team is not player.team:
-            player.team.score += 1
-        del self._tags[egg]
-        PopupText(f"{player.team.score}/{self._score_to_win} eggs collected!" if egg_owner.team is not player.team else f"Teammate's egg rescued",
-            color=(egg_owner.team.color),
-            scale=1.5,
-            position=player.actor.node.position,
-        ).autoretain()
-        assert self._score_to_win is not None
-        if any(team.score >= self._score_to_win for team in self.teams):
-            bs.timer(0.5, self.end_game)
-        self._update_scoreboard()
+            if self.has_ended():
+                return
+            collision = bs.getcollision()
+
+            # Be defensive here; we could be hitting the corpse of a player
+            # who just left/etc.
+            try:
+                egg = collision.sourcenode.getdelegate(Egg, True)
+                player = collision.opposingnode.getdelegate(
+                    PlayerSpaz, True
+                ).getplayer(Player, True)
+            except bs.NotFoundError:
+                return
+            egg_owner = self._tags[egg]
+            egg.lightnode.delete()
+            egg.handlemessage(bs.DieMessage())
+            if egg_owner.team is not player.team:
+                player.team.score += 1
+            del self._tags[egg]
+            PopupText(f"{player.team.score}/{self._score_to_win} eggs collected!" if egg_owner.team is not player.team else f"Teammate's egg rescued",
+                color=(egg_owner.team.color),
+                scale=1.5,
+                position=player.actor.node.position,
+            ).autoretain()
+            assert self._score_to_win is not None
+            if any(team.score >= self._score_to_win for team in self.teams):
+                bs.timer(0.5, self.end_game)
+            self._update_scoreboard()
+        except:
+            pass
 
     def get_instance_description(self) -> str | Sequence:
         return 'Crush & collect eggs of ${ARG1} enemies.', self._score_to_win
